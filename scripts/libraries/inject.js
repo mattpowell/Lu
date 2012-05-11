@@ -1104,7 +1104,7 @@ applyRules = function(moduleId, save, relativePath) {
       }
     }
   }
-  if(typeof relativePath === "string") {
+  if(typeof relativePath === "string" && (rule === null || rule.path === null)) {
     workingPath = basedir(relativePath) + moduleId
   }
   if(!fileSuffix.test(workingPath)) {

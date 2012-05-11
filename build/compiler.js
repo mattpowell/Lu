@@ -81,8 +81,46 @@ function closureCompilerJar(source, level, callback) {
   stream.pipe(child.stdin);
 }
 
+function uglifier(source, level, callback) {
+  var parser = require( 'uglify-js' ).parser,
+      uglify = require( 'uglify-js' ).uglify,
+      opts, ast;
+      
+  opts = {
+    mangle: {
+      toplevel: false,
+      except: ['require', 'module']
+    },
+    squeeze: {
+      dead_code: true
+    },
+    gen: {
+      beautify: false
+    }
+  }
+  
+  if (level === 'ADVANCED_OPTIMIZATIONS') {
+    opts.mangle.toplevel = true;
+  }else if (level ==='WHITESPACE_ONLY') {
+    opts.squeeze.dead_code = false;
+    opts.gen.beautify = true;
+  }
+      
+  ast = uglify.ast_squeeze(uglify.ast_mangle( parser.parse( source.toString() ), opts.mangle ), opts.squeeze );
+  callback(null, uglify.gen_code( ast, opts.gen ) );
+}
+
 function Compiler(opts) {
-  this.compile = opts.type === 'jar' ? closureCompilerJar : closureCompilerService;
+  var compiler = closureCompilerService,
+      type = opts.type;
+      
+  if (type === 'jar') {
+    compiler = closureCompilerJar;
+  }else if (type === 'uglify') {
+    compiler = uglifier;
+  }
+  
+  this.compile = compiler;
 };
 
 module.exports = Compiler;

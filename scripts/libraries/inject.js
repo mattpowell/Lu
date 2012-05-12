@@ -397,15 +397,7 @@ var lscache = function() {
   }}
 }();
 var analyzeFile, anonDefineStack, applyRules, basedir, clearFileRegistry, commentRegex, commonJSFooter, commonJSHeader, context, createIframe, createModule, db, define, defineStaticRequireRegex, dispatchTreeDownload, downloadTree, executeFile, extractRequires, fileStorageToken, fileStore, fileSuffix, functionNewlineRegex, functionRegex, functionSpaceRegex, getFormattedPointcuts, getFunctionArgs, getXHR, hostPrefixRegex, hostSuffixRegex, iframeName, initializeExports, isIE, loadModules, namespace, 
-pauseRequired, processCallbacks, relativePathRegex, require, requireGreedyCapture, requireRegex, reset, responseSlicer, schemaVersion, sendToIframe, sendToXhr, treeNode, undef, userConfig, userModules, xDomainRpc, _db;
-var __hasProp = Object.prototype.hasOwnProperty, __indexOf = Array.prototype.indexOf || function(item) {
-  for(var i = 0, l = this.length;i < l;i++) {
-    if(this[i] === item) {
-      return i
-    }
-  }
-  return-1
-};
+pauseRequired, processCallbacks, relativePathRegex, require, requireGreedyCapture, requireRegex, reset, responseSlicer, schemaVersion, sendToIframe, sendToXhr, treeNode, undef, userConfig, userModules, xDomainRpc, _db, __hasProp = {}.hasOwnProperty;
 isIE = eval("/*@cc_on!@*/false");
 userConfig = {};
 undef = undef;
@@ -418,7 +410,7 @@ fileStorageToken = "FILEDB";
 fileStore = "Inject FileStorage";
 namespace = "Inject";
 userModules = {};
-fileSuffix = /.*?\.(js|txt)$/;
+fileSuffix = /.*?\.(js|txt)(\?.*)?$/;
 hostPrefixRegex = /^https?:\/\//;
 hostSuffixRegex = /^(.*?)(\/.*|$)/;
 iframeName = "injectProxy";
@@ -440,7 +432,7 @@ db = {"module":{"create":function(moduleId) {
     return registry[moduleId] = {"failed":false, "exports":null, "path":null, "file":null, "amd":false, "loading":false, "executed":false, "rulesApplied":false, "requires":[], "exec":null, "pointcuts":{"before":[], "after":[]}}
   }
 }, "getExports":function(moduleId) {
-  var registry, _ref, _ref2;
+  var registry, _ref, _ref1;
   registry = _db.moduleRegistry;
   if(db.module.getFailed(moduleId)) {
     return false
@@ -448,7 +440,7 @@ db = {"module":{"create":function(moduleId) {
   if((_ref = registry[moduleId]) != null ? _ref.exports : void 0) {
     return registry[moduleId].exports
   }
-  if((_ref2 = registry[moduleId]) != null ? _ref2.exec : void 0) {
+  if((_ref1 = registry[moduleId]) != null ? _ref1.exec : void 0) {
     registry[moduleId].exec();
     registry[moduleId].exec = null;
     return registry[moduleId].exports
@@ -681,6 +673,7 @@ db = {"module":{"create":function(moduleId) {
   return _db.defineQueue[0]
 }}}};
 treeNode = function() {
+  treeNode.name = "treeNode";
   function treeNode(value) {
     this.value = value;
     this.children = [];
@@ -723,11 +716,10 @@ treeNode = function() {
     return this.parent
   };
   treeNode.prototype.postOrder = function() {
-    var currentNode, direction, output, _results;
+    var currentNode, direction, output;
     output = [];
     currentNode = this;
     direction = null;
-    _results = [];
     while(currentNode) {
       if(currentNode.getChildren().length > 0 && direction !== "up") {
         direction = "down";
@@ -747,7 +739,6 @@ treeNode = function() {
       }
       return output
     }
-    return _results
   };
   return treeNode
 }();
@@ -761,7 +752,7 @@ clearFileRegistry = function(version) {
   if(version == null) {
     version = schemaVersion
   }
-  if(!(__indexOf.call(context, "localStorage") >= 0)) {
+  if(!context.localStorage) {
     return
   }
   token = "" + fileStorageToken + version;
@@ -776,9 +767,9 @@ clearFileRegistry = function(version) {
   }
 };
 createIframe = function() {
-  var iframe, localSrc, src, trimHost, _ref, _ref2;
+  var iframe, localSrc, src, trimHost, _ref, _ref1;
   src = userConfig != null ? (_ref = userConfig.xd) != null ? _ref.xhr : void 0 : void 0;
-  localSrc = userConfig != null ? (_ref2 = userConfig.xd) != null ? _ref2.inject : void 0 : void 0;
+  localSrc = userConfig != null ? (_ref1 = userConfig.xd) != null ? _ref1.inject : void 0 : void 0;
   if(!src) {
     throw new Error("Configuration requires xd.remote to be defined");
   }
@@ -819,7 +810,7 @@ createIframe = function() {
   })
 };
 getFormattedPointcuts = function(moduleId) {
-  var afterCut, beforeCut, cut, cuts, definition, fn, noop, pointcuts, _i, _j, _len, _len2, _ref, _ref2;
+  var afterCut, beforeCut, cut, cuts, definition, fn, noop, pointcuts, _i, _j, _len, _len1, _ref, _ref1;
   cuts = db.module.getPointcuts(moduleId);
   beforeCut = [";"];
   afterCut = [";"];
@@ -828,9 +819,9 @@ getFormattedPointcuts = function(moduleId) {
     cut = _ref[_i];
     beforeCut.push(cut.toString().match(/.*?\{([\w\W]*)\}/m)[1])
   }
-  _ref2 = cuts.after;
-  for(_j = 0, _len2 = _ref2.length;_j < _len2;_j++) {
-    cut = _ref2[_j];
+  _ref1 = cuts.after;
+  for(_j = 0, _len1 = _ref1.length;_j < _len1;_j++) {
+    cut = _ref1[_j];
     afterCut.push(cut.toString().match(/.*?\{([\w\W]*)\}/m)[1])
   }
   beforeCut.push(";");
@@ -927,18 +918,10 @@ loadModules = function(modList, callback) {
   return _results
 };
 downloadTree = function(tree, callback) {
-  var download, file, moduleId, onDownloadComplete, relativePath;
+  var download, file, moduleId, onDownloadComplete;
   moduleId = tree.getValue();
   if(db.module.getRulesApplied() === false) {
-    if(relativePathRegex.test(moduleId)) {
-      relativePath = userConfig.moduleRoot;
-      if(tree.getParent() && tree.getParent().getValue()) {
-        relativePath = db.module.getPath(tree.getParent().getValue())
-      }
-      applyRules(moduleId, true, relativePath)
-    }else {
-      applyRules(moduleId, true)
-    }
+    applyRules(moduleId, true, tree)
   }
   onDownloadComplete = function(moduleId, file) {
     var id, node, processCallback, req, requires, _i, _len;
@@ -981,6 +964,9 @@ downloadTree = function(tree, callback) {
       return sendToXhr(moduleId, processCallbacks)
     }
   };
+  if(db.module.getExports(moduleId)) {
+    return callback()
+  }
   db.queue.file.add(moduleId, onDownloadComplete);
   if(db.module.getLoading(moduleId)) {
     return
@@ -1072,8 +1058,8 @@ analyzeFile = function(moduleId, tree) {
   db.module.setRequires(moduleId, safeRequires);
   return db.module.setCircular(moduleId, hasCircular)
 };
-applyRules = function(moduleId, save, relativePath) {
-  var isMatch, pointcuts, rule, workingPath, _i, _len, _ref, _ref2, _ref3;
+applyRules = function(moduleId, save, tree) {
+  var isMatch, pointcuts, relativePath, rule, workingPath, _i, _len, _ref, _ref1, _ref2;
   workingPath = moduleId;
   pointcuts = {before:[], after:[]};
   _ref = db.queue.rules.get();
@@ -1084,10 +1070,10 @@ applyRules = function(moduleId, save, relativePath) {
       continue
     }
     workingPath = typeof rule.path === "string" ? rule.path : rule.path(workingPath);
-    if(rule != null ? (_ref2 = rule.pointcuts) != null ? _ref2.before : void 0 : void 0) {
+    if(rule != null ? (_ref1 = rule.pointcuts) != null ? _ref1.before : void 0 : void 0) {
       pointcuts.before.push(rule.pointcuts.before)
     }
-    if(rule != null ? (_ref3 = rule.pointcuts) != null ? _ref3.after : void 0 : void 0) {
+    if(rule != null ? (_ref2 = rule.pointcuts) != null ? _ref2.after : void 0 : void 0) {
       pointcuts.after.push(rule.pointcuts.after)
     }
   }
@@ -1104,7 +1090,11 @@ applyRules = function(moduleId, save, relativePath) {
       }
     }
   }
-  if(typeof relativePath === "string" && (rule === null || rule.path === null)) {
+  if(relativePathRegex.test(workingPath)) {
+    relativePath = userConfig.moduleRoot;
+    if(tree.getParent() && tree.getParent().getValue()) {
+      relativePath = db.module.getPath(tree.getParent().getValue())
+    }
     workingPath = basedir(relativePath) + moduleId
   }
   if(!fileSuffix.test(workingPath)) {
@@ -1142,7 +1132,7 @@ executeFile = function(moduleId) {
   runHeader = header + "\n";
   runCmd = [runHeader, text, ";", footer, sourceString].join("\n");
   try {
-    module = context.eval(runCmd)
+    module = context["eval"](runCmd)
   }catch(err) {
     filePath = db.module.getPath(moduleId);
     message = "(inject module eval) " + err.message + "\n    in " + path;
@@ -1260,9 +1250,9 @@ require = function(moduleId, callback) {
       }
     }
     require.ensure(strippedModuleList, function(require, module, exports) {
-      var args, mId, _j, _len2;
+      var args, mId, _j, _len1;
       args = [];
-      for(_j = 0, _len2 = moduleId.length;_j < _len2;_j++) {
+      for(_j = 0, _len1 = moduleId.length;_j < _len1;_j++) {
         mId = moduleId[_j];
         switch(mId) {
           case "require":
@@ -1398,7 +1388,7 @@ define = function(moduleId, deps, callback) {
   db.module.setLoading(moduleId, true);
   allDeps = db.module.getRequires(moduleId);
   afterLoadModules = function() {
-    var amdCallback, amdCallbackQueue, args, dep, exportsSet, item, returnValue, value, _i, _j, _len, _len2, _ref;
+    var amdCallback, amdCallbackQueue, args, dep, exportsSet, item, returnValue, value, _i, _j, _len, _len1, _ref;
     if(typeof callback === "function") {
       args = [];
       for(_i = 0, _len = deps.length;_i < _len;_i++) {
@@ -1439,9 +1429,10 @@ define = function(moduleId, deps, callback) {
       module.setExports(callback)
     }
     db.module.setExports(moduleId, module.exports);
+    db.module.setExecuted(moduleId, true);
     db.module.setLoading(moduleId, false);
     amdCallbackQueue = db.queue.amd.get(moduleId);
-    for(_j = 0, _len2 = amdCallbackQueue.length;_j < _len2;_j++) {
+    for(_j = 0, _len1 = amdCallbackQueue.length;_j < _len1;_j++) {
       amdCallback = amdCallbackQueue[_j];
       amdCallback()
     }
